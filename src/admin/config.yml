@@ -1,0 +1,21 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "src/images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "blog"
+    label: "Blog Posts"
+    folder: "src/blog/posts"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "URL Slug", name: "slug", widget: "string", hint: "Controls the URL: /blog/<slug>/" }
+      - { label: "Publish Date", name: "date", widget: "datetime" }
+      - { label: "Meta Description", name: "description", widget: "text", hint: "150–160 characters, shown in Google search results" }
+      - { label: "Canonical URL", name: "canonicalURL", widget: "string", required: false, hint: "Only set if this content is republished from elsewhere" }
+      - { label: "Cover / Social Image", name: "image", widget: "image", required: false, hint: "Used as the article hero and the social share (og:image) preview" }
+      - { label: "Author", name: "author", widget: "string", default: "Intercept Advantage" }
