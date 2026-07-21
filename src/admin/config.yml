@@ -19,3 +19,5 @@ collections:
       - { label: "Canonical URL", name: "canonicalURL", widget: "string", required: false, hint: "Only set if this content is republished from elsewhere" }
       - { label: "Cover / Social Image", name: "image", widget: "image", required: false, hint: "Used as the article hero and the social share (og:image) preview" }
       - { label: "Author", name: "author", widget: "string", default: "Intercept Advantage" }
+            - { label: "Body", name: "body", widget: "markdown" }
+
