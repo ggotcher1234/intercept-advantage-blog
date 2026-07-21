@@ -1,0 +1,31 @@
+import type { Form } from '../forms';
+import * as React from 'react';
+import { type FC } from 'react';
+export interface FormBuilderProps {
+    form: {
+        tinaForm: Form;
+        activeFieldName?: string;
+    };
+    hideFooter?: boolean;
+    label?: string;
+    onPristineChange?: (_pristine: boolean) => unknown;
+}
+export declare const FormBuilder: FC<FormBuilderProps>;
+export declare const FormStatus: ({ pristine }: {
+    pristine: boolean;
+}) => React.JSX.Element;
+export declare const FormWrapper: ({ id, children, }: {
+    id: string;
+    children: React.ReactNode;
+}) => React.JSX.Element;
+/**
+ * @deprecated
+ * Original misspelt version of CreateBranchModal
+ */
+export declare const CreateBranchModel: ({ close, safeSubmit, relativePath, values, crudType, }: {
+    safeSubmit: () => Promise<void>;
+    close: () => void;
+    relativePath: string;
+    values: Record<string, unknown>;
+    crudType: string;
+}) => React.JSX.Element;
