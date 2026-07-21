@@ -1,0 +1,20 @@
+---
+layout: base.njk
+title: Blog
+description: Signals, strategy, and updates from the Intercept Advantage team.
+permalink: /blog/index.html
+---
+<div class="blog-list-wrap">
+  <div class="section-eyebrow"><span class="rule"></span>The Blog</div>
+  <h1 class="blog-list-title">Signals &amp; strategy.</h1>
+  <div class="blog-list">
+    {% for post in collections.posts %}
+    <a class="blog-card" href="/blog/{{ post.data.slug }}/">
+      {% if post.data.image %}<img class="blog-card-img" src="{{ post.data.image }}" alt="{{ post.data.title }}">{% endif %}
+      <div class="blog-card-date">{{ post.data.date | date("MMMM d, yyyy") }}</div>
+      <div class="blog-card-title">{{ post.data.title }}</div>
+      <div class="blog-card-desc">{{ post.data.description }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</div>

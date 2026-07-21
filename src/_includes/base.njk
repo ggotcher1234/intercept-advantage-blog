@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }} — Intercept Advantage</title>
+<meta name="description" content="{{ description }}">
+{% if canonicalURL %}<link rel="canonical" href="{{ canonicalURL }}">{% endif %}
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ description }}">
+{% if image %}<meta property="og:image" content="{{ image }}">{% endif %}
+<meta name="theme-color" content="#111111">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,300&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles/blog.css">
+</head>
+<body>
+<nav class="blog-nav">
+  <a href="/" class="blog-nav-logo">
+    <svg width="30" height="30" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs><linearGradient id="g" x1="4" y1="44" x2="44" y2="4" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#E8614A"/><stop offset="1" stop-color="#F0B942"/></linearGradient></defs>
+      <circle cx="21" cy="27" r="18.5" fill="none" stroke="url(#g)" stroke-width="2" opacity="0.35"/>
+      <circle cx="21" cy="27" r="12" fill="none" stroke="url(#g)" stroke-width="2" opacity="0.6"/>
+      <circle cx="21" cy="27" r="4" fill="url(#g)"/>
+      <path d="M23.3 24.7 L40 8" stroke="url(#g)" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M29 8 L40 8 L40 19" fill="none" stroke="url(#g)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="blog-nav-word1">Intercept</span> <span class="blog-nav-word2">Advantage</span>
+  </a>
+  <a href="/" class="blog-nav-back">← Back to site</a>
+</nav>
+{{ content | safe }}
+<footer class="blog-footer">© {{ "now" | date("yyyy") }} Leadforce Solutions. All rights reserved.</footer>
+</body>
+</html>
