@@ -52,8 +52,9 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 <input id="slug" placeholder="the-best-salespeople-prospect-better"/>
 <div class="row">
 <div><label>Publication Date</label><input type="date" id="published_date"/></div>
-<div><label>Status</label><select id="status"><option value="draft">Draft</option><option value="published">Published</option></select></div>
+<div><label>Current Status</label><div id="status-pill-display" style="padding:10px 12px">New / Unsaved</div></div>
 </div>
+<input type="hidden" id="status" value="draft"/>
 <label>Card Excerpt</label>
 <textarea id="excerpt" style="min-height:80px"></textarea>
 <label>Featured Image URL (Dropbox link)</label>
@@ -65,7 +66,8 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 <label style="display:flex;align-items:center;gap:8px;margin-top:24px"><input type="checkbox" id="featured" style="width:auto"/> Featured Article</label>
 <div class="actions">
 <button class="btn-secondary" onclick="preview()">Preview</button>
-<button class="btn-primary" onclick="save()">Save</button>
+<button class="btn-secondary" onclick="save('draft')">Save Draft</button>
+<button class="btn-primary" onclick="save('published')">Publish</button>
 <button class="btn-secondary" onclick="resetForm()">New Article</button>
 </div>
 <div id="msg"></div>
@@ -123,6 +125,7 @@ function editPost(i) {
   document.getElementById("slug").value = p.slug || "";
   document.getElementById("published_date").value = p.published_date || "";
   document.getElementById("status").value = p.status || "draft";
+  document.getElementById("status-pill-display").innerHTML = `<span class="status-pill status-${p.status}">${p.status}</span>`;
   document.getElementById("excerpt").value = p.excerpt || "";
   document.getElementById("image_url").value = p.image_url || "";
   document.getElementById("meta_description").value = p.meta_description || "";
@@ -135,6 +138,7 @@ function resetForm() {
   ["post-id","title","slug","published_date","excerpt","image_url","meta_description"].forEach((id) => document.getElementById(id).value = "");
   quill.root.innerHTML = "";
   document.getElementById("status").value = "draft";
+  document.getElementById("status-pill-display").textContent = "New / Unsaved";
   document.getElementById("featured").checked = false;
 }
 
@@ -157,7 +161,8 @@ function collect() {
   };
 }
 
-function save() {
+function save(targetStatus) {
+  document.getElementById("status").value = targetStatus;
   const body = collect();
   fetch("/.netlify/functions/admin-posts", {
     method: "POST",
