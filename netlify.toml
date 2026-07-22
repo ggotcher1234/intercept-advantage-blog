@@ -19,6 +19,6 @@ status = 200
 
 [[redirects]]
 from = "/insights/*"
-to = "/.netlify/functions/article?slug=:splat"
+to = "/.netlify/functions/article/:splat"
 status = 200
 force = true
