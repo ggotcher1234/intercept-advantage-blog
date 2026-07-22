@@ -2,6 +2,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Blog Editor | Intercept Advantage</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet"/>
 <style>
 :root{--coral:#E8614A;--gold:#F0B942;--ink:#1c1c1c;--cream:#F4F1EC;--dark:#111111;}
 *{box-sizing:border-box;}
@@ -25,6 +26,9 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 .status-published{background:rgba(46,160,67,0.15);color:#1a7a33;}
 .status-draft{background:rgba(0,0,0,0.08);color:#555;}
 .edit-link{color:var(--coral);font-weight:600;cursor:pointer;}
+#content-editor{background:#fff;border-radius:0 0 4px 4px;}
+#content-editor .ql-editor{min-height:320px;font-size:16px;line-height:1.6;}
+.ql-toolbar.ql-snow{border-radius:4px 4px 0 0;background:#f4f1ec;}
 #gate{max-width:360px;margin:120px auto;text-align:center;}
 #gate input{margin-bottom:16px;}
 #msg{margin-top:16px;font-size:14px;}
@@ -57,7 +61,7 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 <label>Meta Description <span style="font-weight:400;color:#777">(optional, for search/social previews)</span></label>
 <textarea id="meta_description" style="min-height:60px"></textarea>
 <label>Article Body</label>
-<textarea id="content" style="min-height:320px"></textarea>
+<div id="content-editor"></div>
 <label style="display:flex;align-items:center;gap:8px;margin-top:24px"><input type="checkbox" id="featured" style="width:auto"/> Featured Article</label>
 <div class="actions">
 <button class="btn-secondary" onclick="preview()">Preview</button>
@@ -74,9 +78,14 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 <script>
 let PW = "";
 let posts = [];
+const quill = new Quill("#content-editor", {
+  theme: "snow",
+  modules: { toolbar: [[{ header: [2, 3, false] }], ["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["blockquote", "link"], ["clean"]] },
+});
 
 function unlock() {
   PW = document.getElementById("pw").value;
@@ -117,13 +126,14 @@ function editPost(i) {
   document.getElementById("excerpt").value = p.excerpt || "";
   document.getElementById("image_url").value = p.image_url || "";
   document.getElementById("meta_description").value = p.meta_description || "";
-  document.getElementById("content").value = p.content || "";
+  quill.root.innerHTML = p.content || "";
   document.getElementById("featured").checked = !!p.featured;
   window.scrollTo(0, 0);
 }
 
 function resetForm() {
-  ["post-id","title","slug","published_date","excerpt","image_url","meta_description","content"].forEach((id) => document.getElementById(id).value = "");
+  ["post-id","title","slug","published_date","excerpt","image_url","meta_description"].forEach((id) => document.getElementById(id).value = "");
+  quill.root.innerHTML = "";
   document.getElementById("status").value = "draft";
   document.getElementById("featured").checked = false;
 }
@@ -142,7 +152,7 @@ function collect() {
     excerpt: document.getElementById("excerpt").value,
     image_url: document.getElementById("image_url").value,
     meta_description: document.getElementById("meta_description").value,
-    content: document.getElementById("content").value,
+    content: quill.root.innerHTML,
     featured: document.getElementById("featured").checked,
   };
 }
@@ -166,7 +176,7 @@ function save() {
 function preview() {
   const p = collect();
   const win = window.open("", "_blank");
-  win.document.write(`<h1 style="font-family:sans-serif">${p.title}</h1><p style="color:#888">${p.published_date || ""}</p>${p.image_url ? `<img src="${p.image_url}" style="max-width:100%"/>` : ""}<div style="font-family:sans-serif;font-size:18px;line-height:1.7;white-space:pre-wrap">${p.content}</div>`);
+  win.document.write(`<h1 style="font-family:sans-serif">${p.title}</h1><p style="color:#888">${p.published_date || ""}</p>${p.image_url ? `<img src="${p.image_url}" style="max-width:100%"/>` : ""}<div style="font-family:sans-serif;font-size:18px;line-height:1.7">${p.content}</div>`);
 }
 </script>
 </body></html>
