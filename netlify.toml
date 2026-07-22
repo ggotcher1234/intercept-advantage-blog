@@ -21,3 +21,4 @@ status = 200
 from = "/insights/:slug"
 to = "/.netlify/functions/article?slug=:slug"
 status = 200
+force = true
