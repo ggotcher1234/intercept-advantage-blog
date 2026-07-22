@@ -47,15 +47,18 @@ exports.handler = async function (event) {
 .article-hero{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;margin-bottom:40px;background:#eee;}
 .article-body{font-size:18px;line-height:1.75;color:#2a2a2a;}
 .article-body p{margin:0 0 24px;}
+.article-body ul,.article-body ol{margin:0 0 24px;padding-left:28px;}
+.article-body li{margin-bottom:8px;}
+.article-body blockquote{margin:0 0 24px;padding:8px 24px;border-left:3px solid var(--coral);font-style:italic;color:#555;}
+.article-body h2,.article-body h3{margin:40px 0 16px;}
+.article-body a{text-decoration:underline;}
 .cta-box{margin:56px 0;padding:32px;background:var(--dark);border-radius:8px;text-align:center;}
 .cta-box h3{color:#fff;font-size:24px;margin-bottom:16px;}
 .cta-box a{display:inline-block;background:linear-gradient(135deg,var(--coral),var(--gold));color:var(--dark);font-weight:700;text-decoration:none;padding:14px 32px;border-radius:4px;letter-spacing:.05em;text-transform:uppercase;font-size:13px;}
 `;
 
-  const contentHtml = String(post.content || "")
-    .split(/\n{2,}/)
-    .map((para) => `<p>${esc(para).replace(/\n/g, "<br/>")}</p>`)
-    .join("");
+  // content is rich HTML from the editor's formatting toolbar (bold, lists, etc.)
+  const contentHtml = String(post.content || "");
 
   const bodyHtml = `<div class="article-wrap">
 <a class="back-link" href="/insights">&larr; Back to Insights</a>
