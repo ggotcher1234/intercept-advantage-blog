@@ -1,0 +1,23 @@
+[build]
+publish = "public"
+functions = "netlify/functions"
+
+[[redirects]]
+from = "/"
+to = "/insights"
+status = 301
+
+[[redirects]]
+from = "/insights"
+to = "/.netlify/functions/insights"
+status = 200
+
+[[redirects]]
+from = "/insights/"
+to = "/.netlify/functions/insights"
+status = 200
+
+[[redirects]]
+from = "/insights/:slug"
+to = "/.netlify/functions/article?slug=:slug"
+status = 200
