@@ -12,7 +12,8 @@ function formatDate(d) {
 function dropboxImg(url) {
   if (!url) return "";
   if (url.includes("dropbox.com")) {
-    return url.replace("www.dropbox.com", "dl.dropboxusercontent.com").split("?")[0];
+    const rewritten = url.replace("www.dropbox.com", "dl.dropboxusercontent.com");
+    return rewritten.includes("rlkey=") ? rewritten.replace(/([?&])dl=0/, "$1dl=1") : rewritten.split("?")[0];
   }
   return url;
 }
