@@ -1,9 +1,8 @@
-const slug = (event.queryStringParameters && event.queryStringParameters.slug) || decodeURIComponent(event.path.split("/").filter(Boolean).pop() || "");
 const { publicClient } = require("./_lib/supabase");
 const { esc, formatDate, dropboxImg, shell } = require("./_lib/theme");
 
 exports.handler = async function (event) {
-  const slug = event.queryStringParameters && event.queryStringParameters.slug;
+  const slug = (event.queryStringParameters && event.queryStringParameters.slug) || decodeURIComponent(event.path.split("/").filter(Boolean).pop() || "");
   const supabase = publicClient();
 
   if (!slug) return { statusCode: 404, body: "Not found" };
