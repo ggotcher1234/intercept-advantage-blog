@@ -1,3 +1,4 @@
+const slug = (event.queryStringParameters && event.queryStringParameters.slug) || decodeURIComponent(event.path.split("/").filter(Boolean).pop() || "");
 const { publicClient } = require("./_lib/supabase");
 const { esc, formatDate, dropboxImg, shell } = require("./_lib/theme");
 
