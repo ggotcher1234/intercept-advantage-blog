@@ -68,6 +68,7 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 <button class="btn-secondary" onclick="preview()">Preview</button>
 <button class="btn-secondary" onclick="save('draft')">Save Draft</button>
 <button class="btn-primary" onclick="save('published')">Publish</button>
+<button class="btn-secondary" id="unpublish-btn" style="display:none;color:#c0392b;border-color:#c0392b" onclick="save('draft')">Unpublish</button>
 <button class="btn-secondary" onclick="resetForm()">New Article</button>
 </div>
 <div id="msg"></div>
@@ -126,6 +127,7 @@ function editPost(i) {
   document.getElementById("published_date").value = p.published_date || "";
   document.getElementById("status").value = p.status || "draft";
   document.getElementById("status-pill-display").innerHTML = `<span class="status-pill status-${p.status}">${p.status}</span>`;
+  document.getElementById("unpublish-btn").style.display = p.status === "published" ? "inline-block" : "none";
   document.getElementById("excerpt").value = p.excerpt || "";
   document.getElementById("image_url").value = p.image_url || "";
   document.getElementById("meta_description").value = p.meta_description || "";
@@ -140,6 +142,7 @@ function resetForm() {
   document.getElementById("status").value = "draft";
   document.getElementById("status-pill-display").textContent = "New / Unsaved";
   document.getElementById("featured").checked = false;
+  document.getElementById("unpublish-btn").style.display = "none";
 }
 
 function slugify(s) {
@@ -172,7 +175,8 @@ function save(targetStatus) {
     .then((r) => r.json())
     .then((data) => {
       if (data.error) { document.getElementById("msg").textContent = "Error: " + data.error; return; }
-      document.getElementById("msg").textContent = "Saved.";
+      document.getElementById("msg").textContent = targetStatus === "draft" && document.getElementById("post-id").value ? "Saved as draft." : "Saved.";
+      document.getElementById("unpublish-btn").style.display = targetStatus === "published" ? "inline-block" : "none";
       return fetch("/.netlify/functions/admin-posts", { headers: { "x-editor-password": PW } }).then((r) => r.json());
     })
     .then((data) => { if (data && data.posts) { posts = data.posts; renderList(); } });
