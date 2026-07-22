@@ -1,9 +1,8 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Blog Editor | Intercept Advantage</title>
-<!-- editor version 1.1.0 - adds Unpublish button -->
+<!-- editor version 1.2.0 - Tiptap editor, sticky toolbar -->
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet"/>
 <style>
 :root{--coral:#E8614A;--gold:#F0B942;--ink:#1c1c1c;--cream:#F4F1EC;--dark:#111111;}
 *{box-sizing:border-box;}
@@ -27,9 +26,17 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 .status-published{background:rgba(46,160,67,0.15);color:#1a7a33;}
 .status-draft{background:rgba(0,0,0,0.08);color:#555;}
 .edit-link{color:var(--coral);font-weight:600;cursor:pointer;}
-#content-editor{background:#fff;border-radius:0 0 4px 4px;}
-#content-editor .ql-editor{min-height:320px;font-size:16px;line-height:1.6;}
-.ql-toolbar.ql-snow{border-radius:4px 4px 0 0;background:#f4f1ec;}
+.editor-shell{border:1px solid rgba(0,0,0,0.15);border-radius:4px;background:#fff;}
+.editor-toolbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:#f4f1ec;border-bottom:1px solid rgba(0,0,0,0.12);border-radius:4px 4px 0 0;}
+.eb{font:600 13px 'Barlow',sans-serif;text-transform:none;letter-spacing:0;background:transparent;border:1px solid transparent;color:var(--ink);padding:6px 10px;border-radius:3px;cursor:pointer;}
+.eb:hover{background:rgba(0,0,0,0.06);}
+.eb.active{background:var(--dark);color:#fff;}
+.eb-sep{width:1px;background:rgba(0,0,0,0.15);margin:2px 4px;}
+#content-editor .ProseMirror{min-height:320px;padding:16px 20px;font-size:16px;line-height:1.6;outline:none;}
+#content-editor .ProseMirror p{margin:0 0 1em;}
+#content-editor .ProseMirror ul,#content-editor .ProseMirror ol{padding-left:1.5em;margin:0 0 1em;}
+#content-editor .ProseMirror blockquote{margin:0 0 1em;padding-left:16px;border-left:3px solid var(--coral);color:#555;font-style:italic;}
+#content-editor .ProseMirror a{color:var(--coral);}
 #gate{max-width:360px;margin:120px auto;text-align:center;}
 #gate input{margin-bottom:16px;}
 #msg{margin-top:16px;font-size:14px;}
@@ -45,7 +52,7 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 
 <div id="app" style="display:none">
 <div class="wrap">
-<h1>Blog Editor <span style="font-size:12px;font-weight:400;color:#999">v1.1.0</span></h1>
+<h1>Blog Editor <span style="font-size:12px;font-weight:400;color:#999">v1.2.0</span></h1>
 <input type="hidden" id="post-id"/>
 <label>Article Title</label>
 <input id="title"/>
@@ -63,7 +70,23 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 <label>Meta Description <span style="font-weight:400;color:#777">(optional, for search/social previews)</span></label>
 <textarea id="meta_description" style="min-height:60px"></textarea>
 <label>Article Body</label>
+<div class="editor-shell">
+<div class="editor-toolbar" id="editor-toolbar">
+<button type="button" class="eb" data-cmd="bold"><b>B</b></button>
+<button type="button" class="eb" data-cmd="italic"><i>I</i></button>
+<span class="eb-sep"></span>
+<button type="button" class="eb" data-cmd="h2">Heading</button>
+<button type="button" class="eb" data-cmd="h3">Subheading</button>
+<span class="eb-sep"></span>
+<button type="button" class="eb" data-cmd="bulletList">Bullet List</button>
+<button type="button" class="eb" data-cmd="orderedList">Numbered List</button>
+<button type="button" class="eb" data-cmd="blockquote">Quote</button>
+<button type="button" class="eb" data-cmd="link">Link</button>
+<span class="eb-sep"></span>
+<button type="button" class="eb" data-cmd="clear">Clear Format</button>
+</div>
 <div id="content-editor"></div>
+</div>
 <label style="display:flex;align-items:center;gap:8px;margin-top:24px"><input type="checkbox" id="featured" style="width:auto"/> Featured Article</label>
 <div class="actions">
 <button class="btn-secondary" onclick="preview()">Preview</button>
@@ -82,13 +105,59 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-<script>
+<script type="module">
+import { Editor } from "https://esm.sh/@tiptap/core@2.9.1";
+import StarterKit from "https://esm.sh/@tiptap/starter-kit@2.9.1";
+import Link from "https://esm.sh/@tiptap/extension-link@2.9.1";
+
 let PW = "";
 let posts = [];
-const quill = new Quill("#content-editor", {
-  theme: "snow",
-  modules: { toolbar: [[{ header: [2, 3, false] }], ["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["blockquote", "link"], ["clean"]] },
+
+const editor = new Editor({
+  element: document.getElementById("content-editor"),
+  extensions: [StarterKit, Link.configure({ openOnClick: false })],
+  content: "",
+  onTransaction: updateToolbarState,
+  onSelectionUpdate: updateToolbarState,
+});
+
+function updateToolbarState() {
+  const checks = {
+    bold: editor.isActive("bold"),
+    italic: editor.isActive("italic"),
+    h2: editor.isActive("heading", { level: 2 }),
+    h3: editor.isActive("heading", { level: 3 }),
+    bulletList: editor.isActive("bulletList"),
+    orderedList: editor.isActive("orderedList"),
+    blockquote: editor.isActive("blockquote"),
+    link: editor.isActive("link"),
+  };
+  document.querySelectorAll(".eb[data-cmd]").forEach((btn) => {
+    btn.classList.toggle("active", !!checks[btn.dataset.cmd]);
+  });
+}
+
+document.getElementById("editor-toolbar").addEventListener("click", (e) => {
+  const btn = e.target.closest(".eb");
+  if (!btn) return;
+  const chain = editor.chain().focus();
+  switch (btn.dataset.cmd) {
+    case "bold": chain.toggleBold().run(); break;
+    case "italic": chain.toggleItalic().run(); break;
+    case "h2": chain.toggleHeading({ level: 2 }).run(); break;
+    case "h3": chain.toggleHeading({ level: 3 }).run(); break;
+    case "bulletList": chain.toggleBulletList().run(); break;
+    case "orderedList": chain.toggleOrderedList().run(); break;
+    case "blockquote": chain.toggleBlockquote().run(); break;
+    case "clear": chain.clearNodes().unsetAllMarks().run(); break;
+    case "link": {
+      const url = window.prompt("Link URL");
+      if (url) chain.extendMarkRange("link").setLink({ href: url }).run();
+      else chain.unsetLink().run();
+      break;
+    }
+  }
+  updateToolbarState();
 });
 
 function unlock() {
@@ -132,14 +201,14 @@ function editPost(i) {
   document.getElementById("excerpt").value = p.excerpt || "";
   document.getElementById("image_url").value = p.image_url || "";
   document.getElementById("meta_description").value = p.meta_description || "";
-  quill.root.innerHTML = p.content || "";
+  editor.commands.setContent(p.content || "");
   document.getElementById("featured").checked = !!p.featured;
   window.scrollTo(0, 0);
 }
 
 function resetForm() {
   ["post-id","title","slug","published_date","excerpt","image_url","meta_description"].forEach((id) => document.getElementById(id).value = "");
-  quill.root.innerHTML = "";
+  editor.commands.setContent("");
   document.getElementById("status").value = "draft";
   document.getElementById("status-pill-display").textContent = "New / Unsaved";
   document.getElementById("featured").checked = false;
@@ -160,7 +229,7 @@ function collect() {
     excerpt: document.getElementById("excerpt").value,
     image_url: document.getElementById("image_url").value,
     meta_description: document.getElementById("meta_description").value,
-    content: quill.root.innerHTML,
+    content: editor.getHTML(),
     featured: document.getElementById("featured").checked,
   };
 }
@@ -182,6 +251,8 @@ function save(targetStatus) {
     })
     .then((data) => { if (data && data.posts) { posts = data.posts; renderList(); } });
 }
+
+Object.assign(window, { unlock, editPost, resetForm, save, preview });
 
 function preview() {
   const p = collect();
