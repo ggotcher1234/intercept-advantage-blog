@@ -2,6 +2,9 @@
 publish = "public"
 functions = "netlify/functions"
 
+[build.environment]
+NODE_VERSION = "18"
+
 [[redirects]]
 from = "/"
 to = "/insights"
@@ -18,7 +21,6 @@ to = "/.netlify/functions/insights"
 status = 200
 
 [[redirects]]
-from = "/insights/*"
-to = "/.netlify/functions/article/:splat"
+from = "/insights/:slug"
+to = "/.netlify/functions/article?slug=:slug"
 status = 200
-force = true
