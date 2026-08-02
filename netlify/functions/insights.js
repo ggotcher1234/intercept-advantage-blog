@@ -1,5 +1,5 @@
 const { publicClient } = require("./_lib/supabase");
-const { esc, formatDate, dropboxImg, shell } = require("./_lib/theme");
+const { esc, formatDate, dropboxImg, shell, subscribeBox, SUBSCRIBE_CSS } = require("./_lib/theme");
 
 exports.handler = async function () {
   const supabase = publicClient();
@@ -45,7 +45,9 @@ ${p.image_url ? `<img src="${esc(dropboxImg(p.image_url))}" alt="${esc(p.title)}
 </div></a>`;
 
   const bodyHtml = `<div class="wrap"><div class="eyebrow" style="margin-top:48px">Insights</div>
-<h1 style="font-size:clamp(32px,4vw,48px);margin-bottom:32px">Ideas for revenue leaders</h1></div>
+<h1 style="font-size:clamp(32px,4vw,48px);margin-bottom:32px">Ideas for revenue leaders</h1>
+${subscribeBox({ id: "insights-top" })}
+</div>
 <div class="grid-css">
 ${featured ? `<div class="featured-row">${cardHtml(featured, true)}${rest[0] ? cardHtml(rest[0]) : ""}</div>` : ""}
 <div class="grid-3">${rest.slice(featured ? 1 : 0).map((p) => cardHtml(p)).join("")}</div>
@@ -60,7 +62,7 @@ ${!list.length ? '<p style="padding:40px 0;color:#777">No articles published yet
       description: "Ideas on revenue growth, sales process, and pipeline strategy from Intercept Advantage.",
       canonical: "https://interceptadvantage.com/insights",
       bodyHtml,
-      extraCss: cardCss,
+      extraCss: cardCss + SUBSCRIBE_CSS,
     }),
   };
 };

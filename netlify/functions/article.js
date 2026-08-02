@@ -1,5 +1,5 @@
 const { publicClient } = require("./_lib/supabase");
-const { esc, formatDate, dropboxImg, shell } = require("./_lib/theme");
+const { esc, formatDate, dropboxImg, shell, subscribeBox, SUBSCRIBE_CSS } = require("./_lib/theme");
 
 exports.handler = async function (event) {
   const slug = (event.queryStringParameters && event.queryStringParameters.slug) || decodeURIComponent(event.path.split("/").filter(Boolean).pop() || "");
@@ -70,6 +70,7 @@ ${img ? `<img class="article-hero" src="${esc(img)}" alt="${esc(post.title)}"/>`
 <h3>See how Intercept Advantage can help your team.</h3>
 <a href="https://interceptadvantage.com/#demo">Request a Live Demonstration</a>
 </div>
+${subscribeBox({ id: "article-bottom", heading: "Enjoyed this? Get more like it." })}
 </div>`;
 
   return {
@@ -82,7 +83,7 @@ ${img ? `<img class="article-hero" src="${esc(img)}" alt="${esc(post.title)}"/>`
       ogImage: img,
       jsonLd,
       bodyHtml,
-      extraCss: articleCss,
+      extraCss: articleCss + SUBSCRIBE_CSS,
     }),
   };
 };
