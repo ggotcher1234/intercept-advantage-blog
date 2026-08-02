@@ -12,8 +12,7 @@ function formatDate(d) {
 function dropboxImg(url) {
   if (!url) return "";
   if (url.includes("dropbox.com")) {
-    const rewritten = url.replace("www.dropbox.com", "dl.dropboxusercontent.com");
-    return rewritten.includes("rlkey=") ? rewritten.replace(/([?&])dl=0/, "$1dl=1") : rewritten.split("?")[0];
+    return url.replace("www.dropbox.com", "dl.dropboxusercontent.com").split("?")[0];
   }
   return url;
 }
@@ -35,6 +34,58 @@ a:hover{color:var(--gold);}
 .eyebrow::before{content:'';display:block;width:36px;height:1px;background:var(--coral);}
 h1,h2,h3{font-family:'Fraunces',serif;font-weight:700;margin:0;}
 `;
+
+// Reusable email-capture box + inline JS. Posts to /.netlify/functions/subscribe.
+// Used on both /insights and individual article pages.
+const SUBSCRIBE_CSS = `
+.subscribe-box{background:var(--dark);border-radius:8px;padding:32px;margin:40px 0;text-align:center;}
+.subscribe-box h3{color:#fff;font-size:22px;margin-bottom:8px;}
+.subscribe-box p{color:rgba(244,241,236,0.7);font-size:14px;margin:0 0 20px;}
+.subscribe-form{display:flex;gap:8px;max-width:420px;margin:0 auto;flex-wrap:wrap;justify-content:center;}
+.subscribe-form input[type=email]{flex:1;min-width:220px;padding:12px 14px;border:none;border-radius:4px;font:inherit;font-size:14px;}
+.subscribe-form button{background:linear-gradient(135deg,var(--coral),var(--gold));color:var(--dark);border:none;font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;padding:12px 20px;border-radius:4px;cursor:pointer;}
+.subscribe-msg{margin-top:14px;font-size:13px;color:rgba(244,241,236,0.85);min-height:16px;}
+`;
+
+function subscribeBox({ heading, sub, id } = {}) {
+  const uid = id || "default";
+  return `<div class="subscribe-box">
+<h3>${esc(heading || "Get new articles in your inbox")}</h3>
+<p>${esc(sub || "No spam — just an email when we publish something new on Insights.")}</p>
+<form class="subscribe-form" id="subscribe-form-${uid}">
+<input type="email" name="email" placeholder="you@company.com" required/>
+<button type="submit">Subscribe</button>
+</form>
+<div class="subscribe-msg" id="subscribe-msg-${uid}"></div>
+</div>
+<script>
+(function(){
+  var form = document.getElementById('subscribe-form-${uid}');
+  var msg = document.getElementById('subscribe-msg-${uid}');
+  if (!form) return;
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email = form.email.value;
+    msg.textContent = 'Subscribing…';
+    fetch('/.netlify/functions/subscribe', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email: email })
+    })
+      .then(function(r){ return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
+      .then(function(res){
+        if (res.ok) {
+          msg.textContent = res.data.message || 'Check your inbox to confirm your subscription.';
+          form.reset();
+        } else {
+          msg.textContent = res.data.error || 'Something went wrong. Please try again.';
+        }
+      })
+      .catch(function(){ msg.textContent = 'Something went wrong. Please try again.'; });
+  });
+})();
+</script>`;
+}
 
 function shell({ title, description, canonical, ogImage, jsonLd, bodyHtml, extraCss }) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"/>
@@ -61,4 +112,4 @@ ${bodyHtml}
 </body></html>`;
 }
 
-module.exports = { esc, formatDate, dropboxImg, shell };
+module.exports = { esc, formatDate, dropboxImg, shell, subscribeBox, SUBSCRIBE_CSS };
