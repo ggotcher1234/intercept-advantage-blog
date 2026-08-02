@@ -2,13 +2,6 @@
 publish = "public"
 functions = "netlify/functions"
 
-# Supabase's realtime-js (a transitive dep of @supabase/supabase-js, pulled
-# in even though this site never uses realtime features) now requires
-# Node's native WebSocket, which only exists from Node 22 onward. Without
-# this pin, functions crash entirely on every request.
-[build.environment]
-NODE_VERSION = "22"
-
 [[redirects]]
 from = "/"
 to = "/insights"
