@@ -73,6 +73,7 @@ exports.handler = async function (event) {
 </div>`,
     });
   } catch (e) {
+    console.error("subscribe: sendEmail failed:", e.message);
     return { statusCode: 502, body: JSON.stringify({ error: "Could not send confirmation email. Try again shortly." }) };
   }
 
