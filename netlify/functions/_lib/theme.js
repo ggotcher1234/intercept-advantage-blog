@@ -9,12 +9,20 @@ function formatDate(d) {
 }
 
 // Rewrites a Dropbox share link into a directly-embeddable image URL.
+// Newer Dropbox share links (dropbox.com/scl/fi/...) require the ?rlkey=
+// param to authorize the request — a plain domain swap that also strips
+// the query string (as this used to) breaks every one of those images.
+// This keeps the query string and just forces raw/direct file serving.
 function dropboxImg(url) {
   if (!url) return "";
-  if (url.includes("dropbox.com")) {
-    return url.replace("www.dropbox.com", "dl.dropboxusercontent.com").split("?")[0];
+  if (!url.includes("dropbox.com")) return url;
+  let out = url.replace("www.dropbox.com", "dl.dropboxusercontent.com");
+  if (/[?&]dl=\d/.test(out)) {
+    out = out.replace(/dl=\d/, "raw=1");
+  } else if (!/[?&]raw=1\b/.test(out)) {
+    out += (out.includes("?") ? "&" : "?") + "raw=1";
   }
-  return url;
+  return out;
 }
 
 const BASE_CSS = `
