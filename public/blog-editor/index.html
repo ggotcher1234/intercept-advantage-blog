@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Blog Editor | Intercept Advantage</title>
-<!-- editor version 1.3.0 - Tiptap editor, sticky toolbar, subscriber notify status -->
+<!-- editor version 1.4.0 - Tiptap editor, sticky toolbar, subscriber notify status -->
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{--coral:#E8614A;--gold:#F0B942;--ink:#1c1c1c;--cream:#F4F1EC;--dark:#111111;}
@@ -25,6 +25,11 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 .status-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
 .status-published{background:rgba(46,160,67,0.15);color:#1a7a33;}
 .status-draft{background:rgba(0,0,0,0.08);color:#555;}
+.status-confirmed{background:rgba(46,160,67,0.15);color:#1a7a33;}
+.status-pending{background:rgba(240,185,66,0.2);color:#8a6416;}
+.status-unsubscribed{background:rgba(0,0,0,0.08);color:#999;}
+.subscribers-summary{font-size:13px;color:#555;margin-top:8px;}
+.subscribers-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;}
 .edit-link{color:var(--coral);font-weight:600;cursor:pointer;}
 .editor-shell{border:1px solid rgba(0,0,0,0.15);border-radius:4px;background:#fff;}
 .editor-toolbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:#f4f1ec;border-bottom:1px solid rgba(0,0,0,0.12);border-radius:4px 4px 0 0;}
@@ -52,7 +57,7 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 
 <div id="app" style="display:none">
 <div class="wrap">
-<h1>Blog Editor <span style="font-size:12px;font-weight:400;color:#999">v1.3.0</span></h1>
+<h1>Blog Editor <span style="font-size:12px;font-weight:400;color:#999">v1.4.0</span></h1>
 <input type="hidden" id="post-id"/>
 <label>Article Title</label>
 <input id="title"/>
@@ -102,6 +107,19 @@ th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#777;}
 <thead><tr><th>Title</th><th>Status</th><th>Date</th><th></th></tr></thead>
 <tbody id="post-list"></tbody>
 </table>
+
+<h2>Subscribers</h2>
+<button class="btn-secondary" id="subscribers-toggle" onclick="toggleSubscribers()">View Subscribers</button>
+<div id="subscribers-panel" style="display:none">
+<div class="subscribers-toolbar">
+<div class="subscribers-summary" id="subscribers-summary"></div>
+<button class="btn-secondary" onclick="copySubscriberEmails()">Copy Confirmed Emails</button>
+</div>
+<table>
+<thead><tr><th>Email</th><th>Status</th><th>Subscribed</th></tr></thead>
+<tbody id="subscriber-list"></tbody>
+</table>
+</div>
 </div>
 </div>
 
@@ -258,7 +276,53 @@ function save(targetStatus) {
     .then((data) => { if (data && data.posts) { posts = data.posts; renderList(); } });
 }
 
-Object.assign(window, { unlock, editPost, resetForm, save, preview });
+let subscribers = null;
+
+function toggleSubscribers() {
+  const panel = document.getElementById("subscribers-panel");
+  const btn = document.getElementById("subscribers-toggle");
+  const opening = panel.style.display === "none";
+  panel.style.display = opening ? "block" : "none";
+  btn.textContent = opening ? "Hide Subscribers" : "View Subscribers";
+  if (opening && subscribers === null) loadSubscribers();
+}
+
+function loadSubscribers() {
+  document.getElementById("subscribers-summary").textContent = "Loading...";
+  fetch("/.netlify/functions/admin-subscribers", { headers: { "x-editor-password": PW } })
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.error) { document.getElementById("subscribers-summary").textContent = "Error: " + data.error; return; }
+      subscribers = data.subscribers || [];
+      renderSubscribers();
+    })
+    .catch(() => { document.getElementById("subscribers-summary").textContent = "Could not load subscribers."; });
+}
+
+function renderSubscribers() {
+  const counts = { confirmed: 0, pending: 0, unsubscribed: 0 };
+  (subscribers || []).forEach((s) => { if (counts[s.status] !== undefined) counts[s.status]++; });
+  document.getElementById("subscribers-summary").textContent =
+    `${counts.confirmed} confirmed · ${counts.pending} pending · ${counts.unsubscribed} unsubscribed · ${subscribers.length} total`;
+
+  const tbody = document.getElementById("subscriber-list");
+  tbody.innerHTML = (subscribers || []).map((s) => `<tr>
+<td>${s.email}</td>
+<td><span class="status-pill status-${s.status}">${s.status}</span></td>
+<td>${s.created_at ? new Date(s.created_at).toLocaleDateString() : ""}</td>
+</tr>`).join("") || "<tr><td colspan=\"3\" style=\"color:#999\">No subscribers yet.</td></tr>";
+}
+
+function copySubscriberEmails() {
+  const emails = (subscribers || []).filter((s) => s.status === "confirmed").map((s) => s.email);
+  if (!emails.length) { alert("No confirmed subscribers to copy yet."); return; }
+  navigator.clipboard.writeText(emails.join(", ")).then(
+    () => alert(`Copied ${emails.length} email${emails.length === 1 ? "" : "s"} to clipboard.`),
+    () => alert("Could not copy — your browser may be blocking clipboard access.")
+  );
+}
+
+Object.assign(window, { unlock, editPost, resetForm, save, preview, toggleSubscribers, copySubscriberEmails });
 
 function preview() {
   const p = collect();
